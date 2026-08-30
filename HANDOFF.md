@@ -18,6 +18,10 @@
 4. ✅ Project registered in unified-ai-workspace
 5. ✅ Workspace documentation scaffolding integrated
 6. ✅ Registry entry updated with active status and paths
+7. ✅ GitHub Actions workflow added for automatic upstream sync
+   - Syncs daily at 2 AM UTC
+   - Manual trigger available via GitHub UI
+   - Only pushes if upstream changes exist
 
 ## Current State Analysis
 
@@ -79,16 +83,26 @@ origin:   https://github.com/mbalazs1/gods-eye-view (personal fork)
 upstream: https://github.com/bilawalsidhu/gods-eye-view.git (original)
 ```
 
-## Upstream Pull Process
+## Upstream Synchronization
 
-To pull updates from original author:
+### Automated Sync (Recommended)
+Your fork automatically syncs with upstream via GitHub Actions:
+- **Schedule**: Daily at 2 AM UTC
+- **Status**: Check `.github/workflows/sync-upstream.yml`
+- **Manual Trigger**: Visit your fork on GitHub → Actions → "Sync with Upstream" → "Run workflow"
+
+### Manual Sync (if needed locally)
+To pull updates from original author in your local clone:
 
 ```bash
 cd /home/user/gods-eye-view
 git fetch upstream main
 git log --oneline main..upstream/main  # Review changes
 git merge upstream/main                # Integrate updates
+git push origin main                   # Push to your fork
 ```
+
+The GitHub Actions workflow handles the push-back to your fork automatically, so you usually don't need manual steps.
 
 ## Handoff Instructions
 
