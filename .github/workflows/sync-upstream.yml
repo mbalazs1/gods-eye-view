@@ -1,0 +1,56 @@
+name: Sync with Upstream
+
+on:
+  schedule:
+    # Run daily at 2 AM UTC
+    - cron: '0 2 * * *'
+  # Allow manual trigger from GitHub UI
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout fork
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Configure Git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Add upstream remote
+        run: git remote add upstream https://github.com/bilawalsidhu/gods-eye-view.git
+
+      - name: Fetch upstream
+        run: git fetch upstream main
+
+      - name: Check if changes exist
+        id: check
+        run: |
+          if git log --oneline main..upstream/main | grep -q .; then
+            echo "has_changes=true" >> $GITHUB_OUTPUT
+          else
+            echo "has_changes=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Merge upstream
+        if: steps.check.outputs.has_changes == 'true'
+        run: git merge upstream/main --allow-unrelated-histories
+
+      - name: Push to fork
+        if: steps.check.outputs.has_changes == 'true'
+        run: git push origin main
+
+      - name: Log sync status
+        run: |
+          if [ "${{ steps.check.outputs.has_changes }}" = "true" ]; then
+            echo "✅ Synced with upstream - new changes merged"
+          else
+            echo "ℹ️ Already in sync with upstream"
+          fi
