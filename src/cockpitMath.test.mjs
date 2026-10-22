@@ -13,6 +13,7 @@ import {
   compassDivisions,
   formatAltitudeRulerTick,
   formatCockpitContextScope,
+  formatCockpitEmergency,
   formatCompassDivision,
   formatSpeedRulerTick,
   normalizeHeading,
@@ -253,7 +254,7 @@ test('Contact panel hides only when there is no snapshot at all', () => {
 
 test('Contact panel survives NEXT onto a vessel or installation subject', () => {
   // The panel owns the NEXT button. Hiding it because the subject is not the
-  // tracked aircraft strands the operator with no way back (this was observed on
+  // tracked aircraft strands the operator with no way back (owner hit this on
   // camera: "click next... whole left panel disappears").
   for (const subject of [
     { layerId: 'ais-live-vessels', id: '353136000', label: 'MAERSK DETROIT' },
@@ -363,4 +364,22 @@ test('tracked-identity resolution falls back to layer precedence', () => {
   assert.equal(resolveTrackedAircraftInfo({ military, trackedId: '' }).layerId, 'military');
   assert.equal(resolveTrackedAircraftInfo({ trackedId: 'flights:aaa077' }), null);
   assert.equal(resolveTrackedAircraftInfo(), null);
+});
+
+test('cockpit emergency wording states the broadcast code, not a conclusion', () => {
+  assert.equal(
+    formatCockpitEmergency({ label: 'General emergency', squawk: '7700', source: 'squawk', severity: 'emergency' }),
+    'SQUAWK 7700 · GENERAL EMERGENCY',
+  );
+  assert.equal(
+    formatCockpitEmergency({ label: 'Downed aircraft', squawk: '1200', source: 'ads-b', severity: 'emergency' }),
+    'ADS-B EMERGENCY · DOWNED AIRCRAFT',
+    'an unrelated squawk is not quoted beside an ADS-B status',
+  );
+  assert.equal(
+    formatCockpitEmergency({ label: 'Minimum fuel', squawk: null, source: 'ads-b', severity: 'priority' }),
+    'ADS-B PRIORITY · MINIMUM FUEL',
+  );
+  assert.equal(formatCockpitEmergency(null), null);
+  assert.equal(formatCockpitEmergency({ label: '' }), null);
 });
